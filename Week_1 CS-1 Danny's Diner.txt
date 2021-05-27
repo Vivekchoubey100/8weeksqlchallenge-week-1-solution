@@ -1,0 +1,119 @@
+/* --------------------
+   Case Study Questions + Solutions
+   --------------------*/
+
+-- 1. What is the total amount each customer spent at the restaurant?
+--select s.customer_id,sum(m.price)
+--from sales s join menu m on s.product_id = m.product_id 
+--group by 1
+
+-- 2. How many days has each customer visited the restaurant?
+--select customer_id, count(distinct(order_date))
+--from sales
+--group by customer_id
+
+-- 3. What was the first item from the menu purchased by each customer?
+---select * from
+---(select * from (
+---select sales.customer_id, sales.product_id,row_number() over -----(partition by sales.customer_id) from sales )a
+---where a.row_number = 1
+---) b
+---join
+---(select * from menu)c
+---on b.product_id = c.product_id
+
+-- 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
+---select customer_id, count(product_id)
+---from sales
+---where product_id = (
+---select a.pid from (
+---select s.product_id as pid,m.product_name,count(m.product_id)
+---from sales s join menu m on s.product_id = m.product_id 
+---group by 1,2
+---order by 3 desc
+---limit 1
+---) a
+---)
+---group by 1
+
+-- 5. Which item was the most popular for each customer?
+
+---select * from (
+---select s.customer_id, m.product_name, count(s.product_id),dense_rank() over(partition by customer_id order by (count(s.product_id)) desc)
+---from sales s join menu m on s.product_id = m.product_id
+---group by 1,2) a
+---where a.dense_rank = 1 
+                                                                      
+-- 6. Which item was purchased first by the customer after they became a member?
+--select *
+--from(
+--select *, dense_rank() over(partition by sales.customer_id order by order_date) from sales
+--join 
+--members on sales.customer_id = members.customer_id
+--where order_date > join_date 
+--)a join 
+--menu on a.product_id = menu.product_id
+--where dense_rank = 1
+
+-- 7. Which item was purchased just before the customer became a member?
+--select *
+--from(
+--select *, dense_rank() over(partition by sales.customer_id order by order_date desc) from sales
+--join 
+--members on sales.customer_id = members.customer_id
+--where order_date < join_date 
+--)a join 
+--menu on a.product_id = menu.product_id
+--where dense_rank = 1
+
+-- 8. What is the total items and amount spent for each member before they became a member?
+--select sales.customer_id,count((sales.product_id)), sum(price)  from sales
+--join 
+--members on sales.customer_id = members.customer_id join menu on sales.product_id = menu.product_id
+--where order_date < join_date 
+--group by 1
+
+-- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
+--select b.customer_id, sum(a.point) from (
+--(select *,
+--case when product_id = 1 then price*10*2
+--	when product_id = 2 then price*10
+--    when product_id = 3 then price*10
+--  else 0
+--  end as point
+-- 	from menu)a
+--join
+--(select customer_id,product_id from sales)b
+--on 
+--a.product_id = b.product_id
+--)
+--group by b.customer_id
+
+-- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+--select a.customer_id, sum(a.point)
+--from(
+--select sales.customer_id,
+--case when order_date between join_date and members.join_date+7 then price*10*2
+--else 0
+--end as point
+-- from sales
+--join members on sales.customer_id = members.customer_id join menu on sales.product_id = menu.product_id
+--where extract(month from order_date)= 1)a
+--group by a.customer_id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
